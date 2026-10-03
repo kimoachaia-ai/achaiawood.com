@@ -1,10 +1,11 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "./styles/index.css";
-import App from "./app/App";
+import React from 'react'
+import { hydrateRoot, createRoot } from 'react-dom/client'
+import App from './App' // If Figma used .tsx, leave it exactly as it was originally
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+const container = document.getElementById('root')!
+
+if (container.hasChildNodes()) {
+  hydrateRoot(container, <React.StrictMode><App /></React.StrictMode>)
+} else {
+  createRoot(container).render(<React.StrictMode><App /></React.StrictMode>)
+}
