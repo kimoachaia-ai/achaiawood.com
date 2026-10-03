@@ -18,7 +18,7 @@ jobs:
         run: npm install
         
       - name: Install SEO plugins on the fly
-        run: npm install -D vite-plugin-prerender vite-plugin-sitemap @types/node
+        run: npm install -D vite-plugin-sitemap @types/node
         
       - name: Auto-generate SEO files
         run: |
