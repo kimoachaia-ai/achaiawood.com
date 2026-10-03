@@ -1,40 +1,51 @@
-name: Deploy to GitHub Pages
-
+name: Deploy Pre-rendered Site
 on:
   push:
-    branches:
-      - main
-
-permissions:
-  contents: write
-
+    branches: ["main"]
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Build
-        run: pnpm build
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+          node-version: 20
+          
+      - name: Install default dependencies
+        run: npm install
+        
+      - name: Install SEO plugins on the fly
+        run: npm install -D vite-plugin-prerender vite-plugin-sitemap @types/node
+        
+      - name: Auto-generate SEO files
+        run: |
+          mkdir -p public
+          echo "User-agent: *" > public/robots.txt
+          echo "Allow: /" >> public/robots.txt
+          echo "Sitemap: https://achaiawood.com/sitemap.xml" >> public/robots.txt
+          echo "achaiawood.com" > public/CNAME
+          
+      - name: Build site (includes pre-rendering)
+        run: npm run build
+        
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          cname: achaiawood.com
+          path: './dist'
+          
+  deploy:
+    needs: build-and-deploy
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
